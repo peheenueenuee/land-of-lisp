@@ -11,10 +11,19 @@
 (defun random-node ()
   (1+ (random *node-num*)))
 
-
 (defun make-edge-list ()
   (apply #'append (loop repeat *edge-num*
                         collect (edge-pair (random-node) (random-node)))))
+(defun make-nodes ()
+  (loop for n from 1 to *node-num* collect n))
+
+(defun make-city-edges ()
+  (let* ((nodes (make-nodes))
+         (edge-list (connect-all-islands nodes (make-edge-list)))
+         (cops (remove-if-not (lambda (_)
+                                (zerop (random *cop-odds*)))
+                              edge-list)))
+    (add-cops (edges-to-alist edge-list) cops)))
 
 ; PURE FUNCTION
 (defun edge-pair (a b)
@@ -54,3 +63,24 @@
 
 (defun connect-all-islands (nodes edge-list)
   (append (connect-with-bridges (find-islands nodes edge-list)) edge-list))
+
+(defun edges-to-alist (edge-list)
+  (mapcar (lambda (node1)
+            (cons node1 (mapcar (lambda (edge) (list (cdr edge)))
+                                (remove-duplicates (direct-edges node1 edge-list)
+                                                   :test #'equal))))
+          (remove-duplicates (mapcar #'car edge-list))))
+
+(defun add-cops (edge-alist edge-with-cops)
+  (mapcar (lambda (item)
+            (let ((node1 (car item))
+                  (node1-edges (cdr item)))
+              (cons node1 (mapcar (lambda (edge)
+                                    (let ((node2 (car edge)))
+                                      (if (intersection (edge-pair node1 node2)
+                                                        edge-with-cops
+                                                        :test #'equal)
+                                        (list node2 'cops)
+                                        edge)))
+                                  node1-edges))))
+          edge-alist))
