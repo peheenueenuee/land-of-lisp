@@ -132,6 +132,25 @@
       (traverse node))
     visited))
 
+(defun hash-edges (edge-list)
+  (let ((tab (make-hash-table)))
+    (mapc (lambda (node_edges)
+            (let ((node (car node_edges)))
+              (push (cdr node_edges) (gethash node tab))))
+          edge-list)
+    tab))
+
+(defun get-connected-hash (node edge-tab)
+  (let ((visited (make-hash-table)))
+    (labels ((traverse (node)
+                       (unless (gethash node visited)
+                         (setf (gethash node visited) t)
+                         (mapc (lambda (edge)
+                                 (traverse edge))
+                               (gethash node edge-tab)))))
+      (traverse node))
+    visited))
+
 (defun find-islands (nodes edge-list)
   (let ((islands nil))
     (labels ((find-island (nodes)
@@ -182,3 +201,4 @@
       (some (lambda (node-x)
               (within-one node-x node-b edge-alist))
             (neighbors node-a edge-alist))))
+
