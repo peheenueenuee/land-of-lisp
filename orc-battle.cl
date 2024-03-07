@@ -63,9 +63,6 @@
          (unless (monsters-dead)
            (monster-hit (random-monster) 1)))))
 
-(defun randval (n)
-  (1+ (random (max 1 n))))
-
 (defun random-monster ()
   (let ((m (aref *monsters* (random (length *monsters*)))))
     (if (monster-dead m)
@@ -93,9 +90,6 @@
                         *monster-builders*))
              (make-array *monster-num*))))
 
-(defun monster-dead (m)
-  (<= (monster-health m) 0))
-
 (defun monsters-dead ()
   (every #'monster-dead *monsters*))
 
@@ -116,4 +110,27 @@
                     (princ ") ")
                     (monster-show m))))
          *monsters*)))
+
+;PURE FUNCTION
+
+(defun monster-dead (m)
+  (<= (monster-health m) 0))
+
+(defun randval (n)
+  (1+ (random (max 1 n))))
+
+;STRUCT GENERIC MONSTER
+(defstruct monster (health (randval 10)))
+
+(defmethod monster-hit (m x)
+  (decf (monster-health m) x)
+  (if (monster-dead m)
+    (progn (princ "You killed the ")
+           (princ (type-of m))
+           (princ "! "))
+    (progn (princ "You hit the ")
+           (princ (type-of m))
+           (princ ", knocking off ")
+           (princ x)
+           (princ " health points! "))))
 
