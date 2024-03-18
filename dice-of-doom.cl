@@ -18,6 +18,39 @@
                         for hex = (aref board (+ x (* *board-size* y)))
                         do (format t "~a-~a " (player-letter (first hex)) (second hex))))))
 
+(defun play-vs-human (tree)
+  (print-info tree)
+  (if (caddr tree)
+    (play-vs-human (handle-human tree))
+    (announce-winner (cadr tree))))
+
+(defun print-info (tree)
+  (fresh-line)
+  (format t "current player = ~a" (player-letter (car tree)))
+  (draw-board (cadr tree)))
+
+(defun handle-human (tree)
+  (fresh-line)
+  (princ "choose your move:")
+  (let ((moves (caddr tree)))
+    (loop for move in moves
+          for n from 1
+          do (let ((action (car move)))
+               (fresh-line)
+               (format t "~a. " n)
+               (if action
+                 (format t "~a -> ~a" (car action) (cadr action))
+                 (princ "end turn. "))))
+    (fresh-line)
+    (cadr (nth (1- (read)) moves))))
+
+(defun announce-winner (board)
+  (fresh-line)
+  (let ((w (winners board)))
+    (if (> (length w) 1)
+      (format t "The game with a tie between -a" (mapcar #'player-letter w))
+      (format t "The winner is ~a !" (player-letter (car w))))))
+
 ;CLEAN FUNCTIONAL CODE
 (defun board-array (lst)
   (make-array *board-hexnum* :initial-contents lst))
@@ -91,3 +124,12 @@
                            (cons (car lst) (f (cdr lst) n))))))))
     (board-array (f (coerce board 'list) spare-dice))))
 
+(defun winners (board)
+  (let* ((tally (loop for hex across board collect (car hex)))
+         (totals (mapcar (lambda (player)
+                           (cons player (count player tally)))
+                         (remove-duplicates tally)))
+         (best (apply #'max (mapcar #'cdr totals))))
+    (mapcar #'car (remove-if (lambda (x)
+                               (not (eq (cdr x) best)))
+                             totals))))
