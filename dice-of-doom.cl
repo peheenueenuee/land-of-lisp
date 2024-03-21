@@ -1,6 +1,6 @@
 (defparameter *num-players* 2)
 (defparameter *max-dice* 3)
-(defparameter *board-size* 2)
+(defparameter *board-size* 3)
 (defparameter *board-hexnum* (* *board-size* *board-size*))
 
 ;DIRTY IMPERATIVE
@@ -72,6 +72,11 @@
                           spare-dice
                           first-move
                           (attacking-moves board player spare-dice))))
+(let ((culc-game-tree (symbol-function 'game-tree))
+      (previous (make-hash-table :test #'equalp)))
+  (defun game-tree (&rest rest)
+    (or (gethash rest previous)
+        (setf (gethash rest previous) (apply culc-game-tree rest)))))
 
 (defun add-passing-move (board player spare-dice first-move moves)
   (if first-move
@@ -110,6 +115,11 @@
                              (list (1+ pos) (1+ down))))
           when (and (>= p 0) (< p *board-hexnum*))
           collect p)))
+(let ((culc-neighbors (symbol-function 'neighbors))
+      (previous (make-hash-table)))
+  (defun neighbors (pos)
+    (or (gethash pos previous)
+        (setf (gethash pos previous) (funcall culc-neighbors pos)))))
 
 (defun board-attack (board player src dst dice)
   (board-array (loop for pos from 0
@@ -151,6 +161,15 @@
         (if (member player w)
           (/ 1 (length w))
           0)))))
+(let ((culc-rate-position (symbol-function 'rate-position))
+      (previous (make-hash-table)))
+  (defun rate-position (tree player)
+    (let ((tab (gethash player previous)))
+      (unless tab
+        (setf tab (setf (gethash player previous) (make-hash-table))))
+      (or (gethash tree tab)
+          (setf (gethash tree tab)
+                (funcall culc-rate-position tree player))))))
 
 (defun get-ratings (tree player)
   (mapcar (lambda (move)
