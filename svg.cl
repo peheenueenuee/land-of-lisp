@@ -55,3 +55,32 @@
                r radius
                style style)))
 
+(defun polygon (points style)
+  (tag polygon (points (format nil "~{~a,~a ~}"
+                               (mapcan (lambda (tp)
+                                         (list (car tp) (cdr tp)))
+                                       points))
+                style style)))
+
+(defun random-walk (value ls-length)
+  (unless (zerop ls-length)
+    (cons value
+          (random-walk (if (zerop (random 2))
+                         (1- value)
+                         (1+ value))
+                       (1- ls-length)))))
+
+(defun random-color-style ()
+  (style-fill-and-dark-stroke (loop repeat 3 collect (random 256))))
+
+(defun save-random-walk-image ()
+  (with-open-file (*standard-output* "random-walk.svg"
+                                     :direction :output
+                                     :if-exists :supersede)
+    (svg 400 200 (loop repeat 10
+                       do (polygon (append '((0 . 200))
+                                           (loop for x from 0
+                                                 for y in (random-walk 100 400)
+                                                 collect (cons x y))
+                                           '((400 . 200)))
+                                   (random-color-style))))))
