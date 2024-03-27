@@ -38,6 +38,8 @@
                             `(you see a ,obj on the floor.)))
     (apply #'append (mapcar #'describe-object (objects-at loc objs obj-locs)))))
 
+;; user commands
+
 (defun look ()
   (append (describe-location *location* *nodes*)
           (describe-paths *location* *edges*)
@@ -61,6 +63,11 @@
 
 (defun inventory ()
   (cons 'items-- (objects-at 'body *objects* *object-locations*)))
+
+(defun have (object)
+  (member object (cdr (inventory))))
+
+;; game-repl engine
 
 (defun game-read ()
   (let ((cmd (read-from-string
