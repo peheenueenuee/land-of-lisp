@@ -21,7 +21,7 @@
 (defun lazy-cdr (c)
   (cdr (force c)))
 
-(defun lazy-nill ()
+(defun lazy-nil ()
   (lazy nil))
 
 (defun lazy-null (x)
