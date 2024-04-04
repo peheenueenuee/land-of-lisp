@@ -2,8 +2,9 @@
 
 (defparameter *num-players* 2)
 (defparameter *max-dice* 3)
-(defparameter *board-size* 3)
+(defparameter *board-size* 4)
 (defparameter *board-hexnum* (* *board-size* *board-size*))
+(defparameter *ai-level* 4)
 
 ;DIRTY IMPERATIVE
 (defun gen-board ()
@@ -33,7 +34,7 @@
 
 (defun play-vs-computer (tree)
   (print-info tree)
-  (cond ((null (caddr tree)) (announce-winner (cadr tree)))
+  (cond ((lazy-null (caddr tree)) (announce-winner (cadr tree)))
         ((zerop (car tree)) (play-vs-computer (handle-human tree)))
         (t (play-vs-computer (handle-computer tree)))))
 
@@ -172,15 +173,12 @@
 
 (defun rate-position (tree player)
   (let ((moves (caddr tree)))
-    (if moves
+    (if (not (lazy-null moves))
       (apply (if (eq (car tree) player)
                #'max
                #'min)
              (get-ratings tree player))
-      (let ((w (winners (cadr tree))))
-        (if (member player w)
-          (/ 1 (length w))
-          0)))))
+      (score-board (cadr tree) player))))
 (let ((culc-rate-position (symbol-function 'rate-position))
       (previous (make-hash-table)))
   (defun rate-position (tree player)
@@ -192,10 +190,43 @@
                 (funcall culc-rate-position tree player))))))
 
 (defun get-ratings (tree player)
-  (mapcar (lambda (move)
-            (rate-position (cadr move) player))
-          (caddr tree)))
+  (take-all (lazy-mapcar (lambda (move)
+                           (rate-position (cadr move) player))
+                         (caddr tree))))
+
+(defun score-board (board player)
+  (loop for hex across board
+        for pos from 0
+        sum (if (eq (car hex) player)
+              (if (threatened pos board)
+                1
+                2)
+              -1)))
+
+(defun threatened (pos board)
+  (let* ((hex (aref board pos))
+         (player (car hex))
+         (dice (cadr hex)))
+    (loop for n in (neighbors pos)
+          do (let* ((nhex (aref board n))
+                    (nplayer (car nhex))
+                    (ndice (cadr nhex)))
+               (when (and (not (eq player nplayer)) (> ndice dice))
+                 (return t))))))
+
+(defun limit-tree-depth (tree depth)
+  (list (car tree)
+        (cadr tree)
+        (if (zerop depth)
+          (lazy-nil)
+          (lazy-mapcar (lambda (move)
+                         (list (car move)
+                               (limit-tree-depth (cadr move) (1- depth))))
+                       (caddr tree)))))
 
 (defun handle-computer (tree)
-  (let ((ratings (get-ratings tree (car tree))))
-    (cadr (nth (position (apply #'max ratings) ratings) (caddr tree)))))
+  (let ((ratings (get-ratings (limit-tree-depth tree *ai-level*)
+                              (car tree))))
+    (cadr (lazy-nth (position (apply #'max ratings) ratings)
+                    (caddr tree)))))
+
