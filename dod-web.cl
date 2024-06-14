@@ -8,6 +8,7 @@
 (defparameter *top-offset* 3)
 (defparameter *dice-scale* 40)
 (defparameter *dot-size* 0.05)
+(defparameter *die-colors* '((245 83 63) (63 83 245)))
 
 (defun draw-dice-svg (x y col)
   (labels ((calc-pt (pt)
@@ -49,4 +50,23 @@
                                                    0.3)))
                           (- yy (* *dice-scale* z 0.8))
                           col)))
+
+(defun draw-board-svg (board chosen-tile legal-tiles)
+  (loop for y below *board-size*
+        do (loop for x below *board-size*
+                 for pos = (+ x (* *board-size* y))
+                 for hex = (aref board pos)
+                 for xx = (* *board-scale* (+ (* 2 x) (- *board-size* y)))
+                 for yy = (* *board-scale* (+ (* 0.7 y) *top-offset*))
+                 for col = (brightness (nth (first hex) *die-colors*)
+                                       (* -15 (- *board-size* y)))
+                 do (if (or (member pos legal-tiles) (eql pos chosen-tile))
+                      (tag g ()
+                           (tag a ("xlink:fref" (make-game-link pos))
+                                (draw-tile-svg x y pos hex xx yy col chosen-tile)))
+                      (draw-tile-svg x y pos hex xx yy col chosen-tile)))))
+
+(defun make-game-link (pos)
+  (format nil "/game.html?chosen=~a" pos))
+
 
