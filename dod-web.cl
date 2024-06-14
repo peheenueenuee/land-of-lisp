@@ -32,3 +32,21 @@
           '(-0.05 0.125 0.3 -0.3 -0.125 0.05 0.2 0.2 0.45 0.45 -0.45 -0.2)
           '(-0.875 -0.8 -0.725 -0.775 -0.7 -0.625 -0.35 -0.05 -0.45 -0.15 -0.45 -0.05))))
 
+(defun draw-tile-svg (x y pos hex xx yy col chosen-tile)
+  (loop for z below 2
+        do (polygon (mapcar (lambda (pt)
+                              (cons (+ xx (* *board-scale* (car pt)))
+                                    (+ yy (* *board-scale* (+ (cdr pt) (* (- 1 z) 0.1))))))
+                            '((-1 . -0.2) (0 . -0.5) (1 . -0.2)
+                              (1 . 0.2) (0 . 0.5) (-1 . 0.2)))
+                    (if (eql pos chosen-tile)
+                      (style-fill-and-dark-stroke (brightness col 100))
+                      (style-fill-and-dark-stroke col))))
+  (loop for z below (second hex)
+        do (draw-dice-svg (+ xx
+                             (* *dice-scale* 0.3 (if (oddp (+ x y z))
+                                                   -0.3
+                                                   0.3)))
+                          (- yy (* *dice-scale* z 0.8))
+                          col)))
+
