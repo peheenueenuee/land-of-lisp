@@ -60,7 +60,7 @@
         (parse-params content)))))
 
 (defun serve (request-handler)
-  (let ((socket (socket-server 8080)))
+  (let ((socket (socket-server 9010)))
     (unwind-protect
       (loop (with-open-stream (st (socket-accept socket))
               (let* ((url (parse-url (read-line st)))
@@ -73,7 +73,7 @@
       (socket-server-close socket))))
 
 (defun serve-test ()
-  (let ((socket (socket-server 8080)))
+  (let ((socket (socket-server 9010)))
     (unwind-protect
       (loop (with-open-stream (st (socket-accept socket))
               (let* ((url (parse-url (read-line st)))
