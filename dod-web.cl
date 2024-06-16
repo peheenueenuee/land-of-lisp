@@ -85,10 +85,12 @@
                          (web-annouce-winner (cadr *cur-game-tree*)))
                         ((zerop (car *cur-game-tree*))
                          (web-handle-human (when chosen (read-from-string (cdr chosen)))))
-                        (t (web-handle-computer)))
-                  (tag br ())
-                  (draw-dod-page *cur-game-tree* *from-tile*))))
+                        (t (web-handle-computer))))
+                (tag br ())
+                (draw-dod-page *cur-game-tree* *from-tile*)))
     (princ "Sorry... i dont know that page.")))
+
+
 
 (defun web-initialize ()
   (setf *from-tile* nil)
