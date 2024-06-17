@@ -103,6 +103,18 @@ Content-Type: text/html
 
 ~a")
 
+(defparameter *pseudo-http-header-string* "HTTP/1.1 200 OK
+Date: Wed, 13 Mar 2024 12:54:39 GMT
+Server: Apache/2.4.58 (FreeBSD) OpenSSL/1.1.1t-freebsd mod_perl/2.0.12 Perl/v5.36.3
+Last-Modified: Mon, 11 Apr 2005 17:34:29 GMT
+Accept-Ranges: bytes
+Keep-Alive: timeout=5, max=100
+Connection: Keep-Alive
+Content-Type: text/html
+
+
+")
+
 (defun hello-request-handler (path header params)
   (if (equal path "greeting")
     (let ((name (assoc 'name params)))
