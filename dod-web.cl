@@ -110,7 +110,9 @@
         ((eq pos 'pass) (setf *cur-game-tree* (cadr (lazy-car (caddr *cur-game-tree*))))
                         (princ "Your reinforcements have been placed.")
                         (tag a (href (make-game-link nil)) (princ "continue")))
-        ((not *from-tile*) (setf *from-tile* nil)
+        ((not *from-tile*) (setf *from-tile* pos)
+                           (princ "Now choose a distination."))
+        ((eq pos *from-tile*) (setf *from-tile* nil)
                            (princ "Move cancelled."))
         (t (setf *cur-game-tree*
                  (cadr (lazy-find-if (lambda (move)
