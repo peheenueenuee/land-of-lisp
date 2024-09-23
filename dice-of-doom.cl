@@ -68,6 +68,25 @@
       (format t "The game with a tie between -a" (mapcar #'player-letter w))
       (format t "The winner is ~a !" (player-letter (car w))))))
 
+(defun roll-dice (dice-num)
+  (let ((total (loop repeat dice-num
+                     sum (1+ (random 6)))))
+    (fresh-line)
+    (format t "On ~a dice rolled ~a. " dice-num total)
+    total))
+
+(defun roll-against (src-dice dst-dice)
+  (> (roll-dice src-dice) (roll-dice dst-dice)))
+
+(defun pick-chance-branch (board move)
+  (labels ((dice (pos)
+                 (cadr (aref board pos))))
+    (let ((path (car move)))
+      (if (or (null path) (roll-against (dice (car path))
+                                        (dice (cadr path))))
+        (cadr move)
+        (caddr move)))))
+
 ;CLEAN FUNCTIONAL CODE
 (defun board-array (lst)
   (make-array *board-hexnum* :initial-contents lst))
@@ -109,15 +128,22 @@
                                     (if (and (not (eq (player dst) cur-player))
                                              (> (dice src) (dice dst)))
                                       (make-lazy
-                                        (list (list (list src dst)
-                                                    (game-tree (board-attack board
-                                                                             cur-player
-                                                                             src
-                                                                             dst
-                                                                             (dice src))
-                                                               cur-player
-                                                               (+ spare-dice (dice dst))
-                                                               nil))))
+                                        (list (list
+                                                (list src dst)
+                                                (game-tree
+                                                  (board-attack board cur-player
+                                                                src dst
+                                                                (dice src))
+                                                   cur-player
+                                                   (+ spare-dice (dice dst))
+                                                   nil)
+                                                (game-tree
+                                                  (board-attack-fail board cur-player
+                                                                     src dst
+                                                                     (dice src))
+                                                  cur-player
+                                                   (+ spare-dice (dice dst))
+                                                   nil))))
                                       (lazy-nil)))
                                   (make-lazy (neighbors src)))
                      (lazy-nil)))
@@ -139,12 +165,21 @@
     (or (gethash pos previous)
         (setf (gethash pos previous) (funcall culc-neighbors pos)))))
 
+;; 攻撃に成功した後のボード処理
 (defun board-attack (board player src dst dice)
   (board-array (loop for pos from 0
                      for hex across board
                      collect (cond ((eq pos src) (list player 1))
                                    ((eq pos dst) (list player (1- dice)))
                                    (t hex)))))
+
+;; 攻撃に失敗した後のボード処理
+(defun board-attack-fail (board player src dst dice)
+  (board-array (loop for pos from 0
+                     for hex across board
+                     collect (if (eq pos src)
+                               (list player 1)
+                               hex))))
 
 (defun add-new-dice (board player spare-dice)
   (labels ((f (lst n acc)

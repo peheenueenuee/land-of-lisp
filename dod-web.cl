@@ -121,7 +121,9 @@
         ((eq pos *from-tile*) (setf *from-tile* nil)
                            (princ "Move cancelled."))
         (t (setf *cur-game-tree*
-                 (cadr (lazy-find-if (lambda (move)
+                 (pick-chance-branch
+                   (cadr *cur-game-tree*)
+                   (lazy-find-if (lambda (move)
                                        (equal (car move) (list *from-tile* pos)))
                                      (caddr *cur-game-tree*))))
            (setf *from-tile* nil)
