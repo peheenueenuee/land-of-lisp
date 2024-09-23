@@ -8,9 +8,12 @@
 (defparameter *top-offset* 3)
 (defparameter *dice-scale* 40)
 (defparameter *dot-size* 0.05)
-(defparameter *die-colors* '((245 83 63) (63 83 245)))
+(defparameter *die-colors* '((245 83 63) (63 83 245) (63 245 83) (255 83 245)))
 (defparameter *cur-game-tree* nil)
 (defparameter *from-tile* nil)
+(defparameter *num-players* 4)
+(defparameter *max-dice* 5)
+(defparameter *ai-level* 2)
 
 (defun draw-dice-svg (x y col)
   (labels ((calc-pt (pt)
